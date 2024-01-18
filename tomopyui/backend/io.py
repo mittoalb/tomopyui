@@ -1958,7 +1958,7 @@ class RawProjectionsHDF5_ALS832(RawProjectionsBase):
         self._check_downsampled_data(label=Uploader.import_status_label)
 
 
-class RawProjectionsHDF5_APS(RawProjectionsHDF5_ALS832):
+class RawProjectionsHDF5_APS_32ID(RawProjectionsHDF5_ALS832):
     """
     See RawProjectionsHDF5_ALS832 superclass description.
     # Francesco: you may need to edit here.
@@ -1966,10 +1966,10 @@ class RawProjectionsHDF5_APS(RawProjectionsHDF5_ALS832):
 
     def __init__(self):
         super().__init__()
-        self.metadata = Metadata_APS_Raw()
+        self.metadata = Metadata_APS_32ID_Raw()
 
     def save_normalized_metadata(self, import_time=None, parent_metadata=None):
-        metadata = Metadata_APS_Prenorm()
+        metadata = Metadata_APS_32ID_Prenorm()
         metadata.filedir = self.filedir
         metadata.metadata = parent_metadata.copy()
         if parent_metadata is not None:
@@ -2076,7 +2076,13 @@ class Metadata(ABC):
             metadata_instance = Metadata_ALS_832_Prenorm()
         if metadata["metadata_type"] == "ALS832_Raw":
             metadata_instance = Metadata_ALS_832_Raw()
-
+         # APS Beamlines
+        if metadata["metadata_type"] == "APS_32ID_Raw":
+            metadata_instance = Metadata_APS_32ID_Raw()
+        #if metadata["metadata_type"] == "APS_32ID_Normalized":
+        #    metadata_instance = Metadata_APS_32ID_Normalized()
+        print(metadata["metadata_type"])
+        
         # Metadata through rest of processing pipeline
         if metadata["metadata_type"] == "Prep":
             metadata_instance = Metadata_Prep()
@@ -3451,18 +3457,18 @@ class Metadata_ALS_832_Prenorm(Metadata_ALS_832_Raw):
         self.metadata_vbox = Output()
 
 
-class Metadata_APS_Raw(Metadata):
+class Metadata_APS_32ID_Raw(Metadata):
     # Francesco: you will need to edit here.
     def __init__(self):
         super().__init__()
         self.filename = "raw_metadata.json"
-        self.metadata["metadata_type"] = "APS_Raw"
+        self.metadata["metadata_type"] = "APS_32ID_Raw"
         self.metadata["data_hierarchy_level"] = 0
-        self.table_label.value = "APS Metadata"
+        self.table_label.value = "APS 32ID Metadata"
 
     def set_metadata(self, projections):
         """
-        Sets metadata from the APS h5 filetype
+        Sets metadata from the APS 32 ID h5 filetype
         """
         self.metadata["numslices"] = projections.pxY
         self.metadata["numrays"] = projections.pxX
@@ -3507,13 +3513,13 @@ class Metadata_APS_Raw(Metadata):
         # "energy_units") that I set manually.
         self.metadata["pxY"] = int(
             dxchange.read_hdf5(
-                h5_filepath, "/measurement/instrument/detector/dimension_y"
+                h5_filepath, "/measurement/instrument/detector/array_size_y"
             )[0]
         )
         self.metadata["numslices"] = self.metadata["pxY"]
         self.metadata["pxX"] = int(
             dxchange.read_hdf5(
-                h5_filepath, "/measurement/instrument/detector/dimension_x"
+                h5_filepath, "/measurement/instrument/detector/array_size_x"
             )[0]
         )
         self.metadata["numrays"] = self.metadata["pxX"]
@@ -3530,22 +3536,27 @@ class Metadata_APS_Raw(Metadata):
             / 10.0
         )  # /10 to convert units from mm to cm
         self.metadata["px_size_units"] = "cm"
-        self.metadata["propagation_dist"] = dxchange.read_hdf5(
-            h5_filepath,
-            "/measurement/instrument/camera_motor_stack/setup/camera_distance",
+        try:
+                self.metadata["propagation_dist"] = dxchange.read_hdf5(
+                    h5_filepath,
+                    "/measurement/instrument/camera_motor_stack/setup/camera_distance",
         )[1]
+        except TypeError:
+                self.metadata["propagation_dist"] = 0.0
         self.metadata["energy_float"] = (
             dxchange.read_hdf5(
                 h5_filepath, "/measurement/instrument/monochromator/energy"
             )[0]
-            / 1000
+
         )
         self.metadata["kev"] = self.metadata["energy_float"]
         self.metadata["energy_str"] = str(self.metadata["energy_float"])
         self.metadata["energy_units"] = "keV"
-        self.metadata["angularrange"] = dxchange.read_hdf5(
-            h5_filepath, "/process/acquisition/rotation/range"
+        self.metadata["angular_step"] = dxchange.read_hdf5(
+            h5_filepath, "/process/acquisition/rotation/step"
         )[0]
+        self.metadata["angularrange"] = self.metadata["num_angles"]*self.metadata["angular_step"]
+
 
     def metadata_to_DataFrame(self):
 
@@ -3621,7 +3632,7 @@ class Metadata_APS_Raw(Metadata):
         self.dataframe = s
 
 
-class Metadata_APS_Prenorm(Metadata_APS_Raw):
+class Metadata_APS_32ID_Prenorm(Metadata_APS_32ID_Raw):
     """
     Prenormalized metadata class. The table produced by this function may look nearly
     the same for you. For the SSRL version, it looks very different because there is a
@@ -3641,7 +3652,7 @@ class Metadata_APS_Prenorm(Metadata_APS_Raw):
     def __init__(self):
         super().__init__()
         self.filename = "import_metadata.json"
-        self.metadata["metadata_type"] = "APS_Normalized"
+        self.metadata["metadata_type"] = "APS_32ID_Raw"
         self.metadata["data_hierarchy_level"] = 1
         self.data_hierarchy_level = self.metadata["data_hierarchy_level"]
         self.table_label.value = ""
@@ -3649,7 +3660,7 @@ class Metadata_APS_Prenorm(Metadata_APS_Raw):
     def set_metadata(self, projections):
         super().set_metadata(projections)
         self.filename = "import_metadata.json"
-        self.metadata["metadata_type"] = "ALS832_Normalized"
+        self.metadata["metadata_type"] = "APS_32ID_Raw"
         self.metadata["data_hierarchy_level"] = 1
 
     def set_attributes_from_metadata(self, projections):

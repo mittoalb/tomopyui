@@ -1,11 +1,12 @@
 import multiprocessing
+import os
 from ipywidgets import *
 from tomopyui.widgets.helpers import import_module_set_env
 from tomopyui.widgets.imports import (
     Import_SSRL62C,
     Import_SSRL62B,
     Import_ALS832,
-    Import_APS,
+    Import_APS_32ID,
 )
 from tomopyui.widgets.center import Center
 from tomopyui.widgets.analysis import Align, Recon
@@ -44,7 +45,7 @@ def create_dashboard(institution: str):
             dataexplorer,
         ) = main.create_dashboard(
             "ALS_832"
-        )  # can be "SSRL_62C", "ALS_832", "APS"
+        )  # can be "SSRL_62C", "ALS_832", "APS_32ID"
         dashboard
 
     """
@@ -54,8 +55,12 @@ def create_dashboard(institution: str):
         file_import = Import_SSRL62C()
     if institution == "SSRL_62B":
         file_import = Import_SSRL62B()
-    if institution == "APS":
-        file_import = Import_APS()
+    if institution == "APS_32ID":
+        file_import = Import_APS_32ID()
+    if institution == "APS_2BM":
+        file_import = Import_APS_32ID()#TO change
+    if institution == "APS_7BM":
+        file_import = Import_APS_32ID()#TO change
     prep = Prep(file_import)
     center = Center(file_import)
     align = Align(file_import, center)
