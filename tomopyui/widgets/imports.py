@@ -27,6 +27,10 @@ from tomopyui.backend.io import (
     Metadata_ALS_832_Prenorm,
     Metadata_APS_32ID_Raw,
     Metadata_APS_32ID_Prenorm,
+    Metadata_APS_2BM_Raw,
+    Metadata_APS_2BM_Prenorm,
+    Metadata_APS_7BM_Raw,
+    Metadata_APS_7BM_Prenorm,
     Metadata_General_Prenorm,
     RawProjectionsTiff_SSRL62B,
 )
@@ -1755,3 +1759,21 @@ class RawUploader_APS_32ID(UploaderBase):
             ],
             layout=Layout(justify_content="center"),
         )
+
+class RawUploader_APS_2BM(RawUploader_APS_32ID):
+    """
+    See RawUploader_APS_32ID superclass.
+    """
+    def __init__(self, Import):
+        super().__init__(Import)
+        self.projections = Metadata_APS_32ID_Raw()
+        self.reset_metadata_to = Metadata_APS_32ID_Raw
+
+class RawUploader_APS_7BM(RawUploader_APS_32ID):
+    """
+    See RawUploader_APS_32ID superclass.
+    """
+    def __init__(self, Import):
+        super().__init__(Import)
+        self.projections = Metadata_APS_32ID_Raw()
+        self.reset_metadata_to = Metadata_APS_32ID_Raw

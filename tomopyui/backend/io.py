@@ -3539,7 +3539,7 @@ class Metadata_APS_32ID_Raw(Metadata):
         try:
                 self.metadata["propagation_dist"] = dxchange.read_hdf5(
                     h5_filepath,
-                    "/measurement/instrument/camera_motor_stack/setup/camera_distance",
+                    "/measurement/instrument/sample_motor_stack/detector_distance",
         )[1]
         except TypeError:
                 self.metadata["propagation_dist"] = 0.0
