@@ -7,6 +7,8 @@ from tomopyui.widgets.imports import (
     Import_SSRL62B,
     Import_ALS832,
     Import_APS_32ID,
+    Import_APS_2BM,
+    Import_APS_7BM
 )
 from tomopyui.widgets.center import Center
 from tomopyui.widgets.analysis import Align, Recon
@@ -45,7 +47,7 @@ def create_dashboard(institution: str):
             dataexplorer,
         ) = main.create_dashboard(
             "ALS_832"
-        )  # can be "SSRL_62C", "ALS_832", "APS_32ID"
+        )  # can be "SSRL_62C", "ALS_832", "APS_32ID", "APS_2BM", "APS_7BM"
         dashboard
 
     """
@@ -58,9 +60,9 @@ def create_dashboard(institution: str):
     if institution == "APS_32ID":
         file_import = Import_APS_32ID()
     if institution == "APS_2BM":
-        file_import = Import_APS_32ID()#TO change
+        file_import = Import_APS_2BM()#TO change
     if institution == "APS_7BM":
-        file_import = Import_APS_32ID()#TO change
+        file_import = Import_APS_7BM()#TO change
     prep = Prep(file_import)
     center = Center(file_import)
     align = Align(file_import, center)
